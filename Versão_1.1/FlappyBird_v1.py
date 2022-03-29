@@ -46,14 +46,66 @@ class Passaro:
         # Parametros auxiliares
         self.tempo = 0
         self.contagem_imagem = 0
-        self.imagem = IMGS[0]
-        
-        
+        self.imagem = self.IMGS[0]
+
     def pular(self):
         self.velocidade = -10.5
         self.tempo = 0
-        
+        self.altura = self.y
 
+    def mover(self):
+        # Calculo do deslocamento
+        self.tempo += 1
+
+        # S = so +vot + at2/2
+        deslocamento = 1.5 * (self.tempo ** 2) + self.velocidade * self.tempo
+
+        # Restringir o deslocamento, evitar bugs no jogo
+        if deslocamento > 16:
+            deslocamento = 16
+
+        elif deslocamento < 0:
+            deslocamento -= 2
+
+        # Deslocamento efetivo
+        self.y = +deslocamento
+
+        # Angulo do passaro
+        if deslocamento < 0 or self.y < (self.altura + 50):
+            if self.angulo < self.ROTACAO_MAX:
+                self.angulo += self.ROTACAO_MAX
+
+            else:
+                if self.angulo > -90:
+                    self.angulo -= self.VELOCIDADE_ROTACAO
+
+    def desenhar(self):
+        # Definir a imagem do passaro a ser usada
+        self.contagem_imagem += 1
+        if self.contagem_imagem < self.TEMPO_ANIMACAO:
+            self.imagem = self.IMGS[0]
+
+        elif self.contagem_imagem < self.TEMPO_ANIMACAO * 2:
+            self.imagem = self.IMGS[1]
+
+        elif self.contagem_imagem < self.TEMPO_ANIMACAO * 3:
+            self.imagem = self.IMGS[2]
+
+        elif self.contagem_imagem < self.TEMPO_ANIMACAO * 4:
+            self.imagem = self.IMGS[1]
+
+        elif self.contagem_imagem >= self.TEMPO_ANIMACAO * 4 + 1:
+            self.imagem = self.IMGS[0]
+            self.contagem_imagem = 0
+
+        # Se o passaro tiver caindo, nao bater asas
+        if self.angulo <= -80:
+            self.imagem = self.IMGS[1]
+            self.contagem_imagem = self.TEMPO_ANIMACAO * 2
+
+        # Desenhar a imagem
+        imagem_rotacionada = pygame.transform.rotate(self.imagem, self.angulo)
+        
 
 # Classe que representa o cano
 class Cano:
