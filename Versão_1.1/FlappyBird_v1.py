@@ -37,10 +37,23 @@ class Passaro:
 
     # Atributos do passaro (variáveis)
     def __init__(self, x, y):
-        sel
+        self.x = x
+        self.y = y
+        self.angulo = 0
+        self.velocidade = 0
+        self.altura = self.y
+
+        # Parametros auxiliares
+        self.tempo = 0
+        self.contagem_imagem = 0
+        self.imagem = IMGS[0]
         
         
+    def pular(self):
+        self.velocidade = -10.5
+        self.tempo = 0
         
+
 
 # Classe que representa o cano
 class Cano:
