@@ -111,7 +111,7 @@ class Passaro:
 
     # Mascarando a imagem para colisao
     def get_mask(self):
-        pygame.mask.from_surface(self.imagem)
+        return pygame.mask.from_surface(self.imagem)
 
 
 # Classe que representa o cano
@@ -131,8 +131,8 @@ class Cano:
 
     def definir_altura(self):
         self.altura = random.randrange(50, 450)
-        self.pos_base = self.altura - self.CANO_TOPO.get_height()
-        self.pos_topo = self.altura + self.distancia
+        self.pos_topo = self.altura - self.CANO_TOPO.get_height()
+        self.pos_base = self.altura + self.DISTANCIA
 
     def mover(self):
         self.x -= self.VELOCIDADE
@@ -161,4 +161,106 @@ class Cano:
 
 # Classe que representa o chão
 class Chao:
-    pass
+    VELOCIDADE_CHAO = 5
+    LARGURA_CHAO = IMAGEM_CHAO.get_width()
+    IMAGEM = IMAGEM_CHAO
+
+    def __init__(self, y):
+        self.y = y
+        self.x0 = 0
+        self.x1 = self.x0 + self.LARGURA_CHAO
+
+    def mover(self):
+        self.x0 -= self.VELOCIDADE_CHAO
+        self.x1 -= self.VELOCIDADE_CHAO
+
+        if self.x0 + self.LARGURA_CHAO < 0:
+            self.x0 = self.x0 + self.LARGURA_CHAO
+
+        if self.x1 + self.LARGURA_CHAO < 0:
+            self.x1 = self.x1 + self.LARGURA_CHAO
+
+    def desenhar(self, tela):
+        tela.blit(self.IMAGEM, (self.x0, self.y))
+        tela.blit(self.IMAGEM, (self.x1, self.y))
+
+
+# Criando o jogo efetivamente
+def desenhar_tela_jogo(tela, passaros, canos, chao, pontos=0):
+    texto = FONTE_PONTOS.render(f"Pontos: {pontos}", True, (255, 255, 255))
+    tela.blit(IMAGEM_BACKGROUND, (0, 0))
+    tela.blit(texto, (LARGURA_TELA - 10 - texto.get_width(), 10))
+    chao.desenhar(tela)
+
+    for passaro in passaros:
+        passaro.desenhar(tela)
+
+    for cano in canos:
+        cano.desenhar(tela)
+
+    pygame.display.update()
+
+
+# rodando o jogo
+def main():
+    passaros = [Passaro(230, 350)]
+    chao = Chao(730)
+    canos = [Cano(700)]
+    tela = pygame.display.set_mode((LARGURA_TELA, ALTURA_TELA))
+    pontos = 0
+    tick_rate = pygame.time.Clock()
+    rodando = True
+
+    while rodando:
+        tick_rate.tick(60)
+
+        # interação com o jogador
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                rodando = False
+                pygame.quit()
+                quit()
+
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_SPACE:
+                    for passaro in passaros:
+                        passaro.pular()
+
+        # Movimentando os objetos
+        for passaro in passaros:
+            passaro.mover()
+
+        chao.mover()
+
+        adcionar_cano = False
+        remover_canos = []
+        for cano in canos:
+            for i, passaro in enumerate(passaros):
+                if cano.colidir(passaro):
+                    passaros.pop(i)
+
+                if not cano.passou and cano.x < passaro.x:
+                    cano.passou = True
+                    adcionar_cano = True
+
+            cano.mover()
+            if cano.x + cano.CANO_TOPO.get_width() < 0:
+                remover_canos.append(cano)
+
+        if adcionar_cano:
+            ponto += 1
+            canos.append(Cano(600))
+
+        for cano in remover_canos:
+            canos.remove(cano)
+
+        for i, passaro in enumerate(passaros):
+            if passaro.y + passaro.imagem.get_height() >= chao.y or passaro.y < 0:
+                passaros.pop(i)
+        
+
+        desenhar_tela_jogo(tela, passaros, canos, chao, pontos)
+
+
+if __name__ == "__main__":
+    main()
